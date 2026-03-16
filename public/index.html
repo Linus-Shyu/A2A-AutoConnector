@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A2A-AutoConnector Demo</title>
+    <style>
+      :root {
+        --bg: #070a12;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panel-border: rgba(255, 255, 255, 0.14);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.66);
+        --accent: #7c5cff;
+        --accent2: #00d4ff;
+        --ok: #44ff9a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+          "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(1200px 800px at 50% -20%, rgba(124, 92, 255, 0.25), transparent),
+          radial-gradient(900px 500px at 20% 10%, rgba(0, 212, 255, 0.18), transparent),
+          radial-gradient(900px 700px at 80% 40%, rgba(68, 255, 154, 0.12), transparent),
+          var(--bg);
+        color: var(--text);
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 28px 18px;
+      }
+
+      .wrap {
+        width: min(820px, 100%);
+        display: grid;
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(10px);
+      }
+
+      .hero {
+        display: grid;
+        justify-items: center;
+        gap: 14px;
+        padding: 28px 22px;
+      }
+
+      .title {
+        font-size: 14px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .status {
+        font-size: 15px;
+        color: var(--muted);
+        text-align: center;
+        line-height: 1.5;
+      }
+
+      .status strong {
+        color: var(--ok);
+        font-weight: 650;
+      }
+
+      .btn {
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+        padding: 14px 22px;
+        border-radius: 14px;
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        box-shadow: 0 12px 40px rgba(124, 92, 255, 0.24), 0 10px 30px rgba(0, 212, 255, 0.14);
+        position: relative;
+        transform: translateZ(0);
+      }
+
+      .btn:before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(124, 92, 255, 0.65), rgba(0, 212, 255, 0.6));
+        filter: blur(14px);
+        opacity: 0.55;
+        z-index: -1;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: translateY(0px) scale(0.99);
+      }
+
+      .logHead {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .logHead .h {
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .logHead .hint {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .logs {
+        height: 220px;
+        overflow: auto;
+        padding: 12px;
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.28);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .logs .line {
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 0 0 6px 0;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.45);
+      }
+      .dot.ok {
+        background: var(--ok);
+        box-shadow: 0 0 0 6px rgba(68, 255, 154, 0.14);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card hero">
+        <div class="title">A2A-AutoConnector Demo</div>
+        <button id="activateBtn" class="btn" type="button">激活我的社交分身</button>
+        <div class="status" id="statusText">尚未授权。点击按钮开始连接 Second Me 宇宙。</div>
+        <div class="pill" id="pill">
+          <span class="dot" id="dot"></span>
+          <span id="pillText">standby</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="logHead">
+          <div class="h">实时日志</div>
+          <div class="hint">自动滚动 · 仅显示最近日志</div>
+        </div>
+        <div id="logs" class="logs" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const logsEl = $("logs");
+      const statusText = $("statusText");
+      const pillText = $("pillText");
+      const dot = $("dot");
+
+      function appendLine(line) {
+        const div = document.createElement("div");
+        div.className = "line";
+        div.textContent = line;
+        logsEl.appendChild(div);
+        while (logsEl.childNodes.length > 300) logsEl.removeChild(logsEl.firstChild);
+        logsEl.scrollTop = logsEl.scrollHeight;
+      }
+
+      function setAuthorizedUI(authorized) {
+        if (authorized) {
+          statusText.innerHTML =
+            " <strong>分身已上线</strong>，正在 Second Me 宇宙中为你寻找同类开发者...";
+          pillText.textContent = "online";
+          dot.classList.add("ok");
+        } else {
+          statusText.textContent = "尚未授权。点击按钮开始连接 Second Me 宇宙。";
+          pillText.textContent = "standby";
+          dot.classList.remove("ok");
+        }
+      }
+
+      $("activateBtn").addEventListener("click", () => {
+        window.location.href = "/login";
+      });
+
+      async function boot() {
+        // If OAuth redirected back with authorized=1, show optimistic status immediately.
+        const params = new URLSearchParams(location.search);
+        if (params.get("authorized") === "1") setAuthorizedUI(true);
+
+        try {
+          const r = await fetch("/api/status");
+          const j = await r.json();
+          setAuthorizedUI(!!j.authorized);
+        } catch (e) {
+          appendLine("[--:--] 无法获取授权状态（/api/status）");
+        }
+
+        // initial logs
+        try {
+          const r = await fetch("/api/logs");
+          const j = await r.json();
+          if (Array.isArray(j.lines)) for (const s of j.lines) appendLine(s);
+        } catch {}
+
+        // realtime logs via SSE
+        try {
+          const es = new EventSource("/events");
+          es.onmessage = (ev) => {
+            if (ev && ev.data) appendLine(ev.data);
+          };
+          es.onerror = () => {
+            appendLine("[--:--] 日志流已断开，稍后可刷新页面重连");
+          };
+        } catch {
+          appendLine("[--:--] 当前环境不支持实时日志（SSE）");
+        }
+      }
+
+      boot();
+    </script>
+  </body>
+</html>
+
